@@ -12,13 +12,19 @@ options.add_argument('--headless=new')
 driver = webdriver.Chrome(options=options)
 driver.get(url)
 
-time.sleep(0.5)
+time.sleep(3)
 
+contest_title = driver.find_element(By.XPATH, '//h1').text
 links = driver.find_elements(By.XPATH, '//table//td/a')
 
-for l in links:
-    contest_id, problem_num = l.get_attribute('href').split('/')[-1].rsplit('_', 1)
-    # TODO コンテスト内の必要な問題だけが取得されるように自動化する
-    subprocess.run(['acc', 'new', '-f', contest_id])
+subprocess.run(['mkdir', contest_title])
+
+for ind, l in enumerate(links):
+    contest_id = l.get_attribute('href').split('/')[-3]
+    problem_id = l.get_attribute('href').split('/')[-1]
+    problem_dir = contest_title + '/' + format(ind + 1, '02') + '/test'
+    problem_url = f'https://atcoder.jp/contests/{contest_id}/tasks/{problem_id}'
+    subprocess.run(['mkdir', problem_dir])
+    subprocess.run(['oj', 'd', '-d', problem_dir, problem_url])
 
 driver.close()
