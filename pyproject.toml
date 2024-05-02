@@ -37,8 +37,8 @@ strict = true
 
 [tool.ruff]
 target-version = "py311"
-select = ["ALL"]
-ignore = [
+lint.select = ["ALL"]
+lint.ignore = [
     "D",       # pydocstyle
     "S603",    # 'subprocess' call: check for execution of untrusted input
     "T201",    # 'print' found
