@@ -41,5 +41,7 @@ lint.select = ["ALL"]
 lint.ignore = [
     "D",       # pydocstyle
     "S603",    # 'subprocess' call: check for execution of untrusted input
+    "COM812",  # Trailing comma missing
+    "ISC001",  # Implicitly concatenated string literals on one line
     "T201",    # 'print' found
 ]

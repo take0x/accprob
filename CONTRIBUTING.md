@@ -41,10 +41,10 @@ If you don't want to use VSCode, you need to run the following commands before c
 
 To lint:
 ```bash
-$ rye run ruff check . && rye run mypy .
+$ rye run ruff check && rye run mypy .
 ```
 
 To format:
 ```bash
-$ rye run ruff format . && rye run isort .
+$ rye run ruff check --select I --fix && rye run ruff format
 ```
