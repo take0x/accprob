@@ -27,7 +27,7 @@ def main() -> None:
 
         contest_id = href.split("/")[-3]
         problem_id = href.split("/")[-1]
-        problem_dir = contest_title + "/" + format(index + 1, "02") + "/test"
+        problem_dir = contest_title + "/" + format(index, "02") + "/test"
         problem_url = f"https://atcoder.jp/contests/{contest_id}/tasks/{problem_id}"
         command = ["oj", "d", "-d", problem_dir, problem_url]
         subprocess.run(
