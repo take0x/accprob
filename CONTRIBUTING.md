@@ -9,7 +9,7 @@ We use [Rye](https://rye-up.com/) to manage dependencies so you need to [install
 After installing Rye, you can install the dependencies by running the following command:
 
 ```bash
-$ rye sync
+$ rye sync --no-lock
 ```
 
 Then you can run scripts by activating the virtual environment:
