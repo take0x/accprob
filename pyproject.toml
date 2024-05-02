@@ -1,11 +1,14 @@
 [project]
 name = "accprob"
 version = "0.1.0"
-description = "Add your description here"
+description = "AtCoder Problems command line tools"
 authors = [
-    { name = "take0x", email = "89313929+take0x@users.noreply.github.com" }
+    { name = "take0x" },
+    { name = "Hietan" }
 ]
-dependencies = []
+dependencies = [
+    "selenium>=4.20.0",
+]
 readme = "README.md"
 requires-python = ">= 3.8"
 
@@ -18,10 +21,25 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "mypy>=1.10.0",
+    "ruff>=0.4.2",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/accprob"]
+
+[tool.mypy]
+strict = true
+
+[tool.ruff]
+target-version = "py311"
+select = ["ALL"]
+ignore = [
+    "D",       # pydocstyle
+    "S603",    # 'subprocess' call: check for execution of untrusted input
+    "T201",    # 'print' found
+]
