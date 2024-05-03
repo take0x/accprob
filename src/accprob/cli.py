@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import time
+import json
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -20,6 +21,8 @@ def main() -> None:
     contest_title = driver.find_element(By.XPATH, "//h1").text
     links = driver.find_elements(By.XPATH, "//table//td/a")
 
+    dic = {}
+
     for index, link in enumerate(links, start=1):
         if (href := link.get_attribute("href")) is None:
             print(f"Failed to download the test case: {index:02}")
@@ -37,7 +40,17 @@ def main() -> None:
         )
         print(f"Downloaded the test case: {index:02} {problem_id}")
 
+        dic_prob = {
+                'contest_id': contest_id,
+                'problem_id': problem_id,
+                'url': problem_url
+                }
+        dic[index] = dic_prob
+
     driver.close()
+
+    with open(f'./{contest_title}/contest-info.json', 'w') as f:
+        json.dump(dic, f, indent=4, separators=(',', ': '))
 
 
 if __name__ == "__main__":
