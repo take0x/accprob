@@ -1,6 +1,6 @@
 # accprob
 
-AtCoder Problems command line tools
+`accprob` is a command line tool for [AtCoder Problems](https://kenkoooo.com/atcoder/). This tool is inspired by [atcoder-cli](https://github.com/Tatamo/atcoder-cli).
 
 ## Installation
 
@@ -16,15 +16,17 @@ $ pip install git+https://github.com/take0x/accprob.git@branch_name
 
 ## Usage
 
+To create a new contest project directory:
 ```bash
-$ accprob
-URL: # Input the URL of the AtCoder Problems contest page
-
-DevTools listening on ws://127.0.0.1:...
-Downloaded the test case: 01 abc123_a
-Downloaded the test case: 02 abc123_b
-Downloaded the test case: 03 abc123_c
+$ accprob n <contest_url>
 ```
+
+To submit the solution:
+```bash
+$ accprob s <file_name>
+```
+
+Use `--help` option to see more details.
 
 ## Contributing
 

@@ -28,7 +28,7 @@ pycparser==2.22
     # via cffi
 pysocks==1.7.1
     # via urllib3
-ruff==0.4.2
+ruff==0.4.3
 selenium==4.20.0
     # via accprob
 sniffio==1.3.1

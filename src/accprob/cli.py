@@ -1,56 +1,141 @@
+import argparse
+import json
 import subprocess
 import sys
 import time
-import json
+from pathlib import Path
+from typing import TypeAlias, TypedDict
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+
+Args: TypeAlias = argparse.Namespace
+
+INFO_FILE = "contest-info.json"
 
 
-def main() -> None:
-    url = input("URL: ")
+class New:
+    class Problem(TypedDict):
+        contest_id: str
+        problem_id: str
+        url: str
 
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless=new")
+    def __init__(self, url: str) -> None:
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless=new")
+        self.driver = webdriver.Chrome(options=options)
+        self.driver.get(url)
+        time.sleep(3)
 
-    driver = webdriver.Chrome(options=options)
-    driver.get(url)
+        self.url = url
+        self.problems: dict[int, New.Problem] = {}
+        self.contest_title = self.driver.find_element(By.XPATH, "//h1").text
+        self.links = self.driver.find_elements(By.XPATH, "//table//td/a")
 
-    time.sleep(3)
+    def __del__(self) -> None:
+        self.driver.close()
 
-    contest_title = driver.find_element(By.XPATH, "//h1").text
-    links = driver.find_elements(By.XPATH, "//table//td/a")
+    def create_info(self) -> None:
+        path = Path(self.contest_title, INFO_FILE)
 
-    dic = {}
+        with path.open("w") as f:
+            json.dump(self.problems, f, indent=4, separators=(",", ": "))
 
-    for index, link in enumerate(links, start=1):
+    def download(self, index: int, link: WebElement) -> None:
+        number = f"{index:02}"
+
         if (href := link.get_attribute("href")) is None:
-            print(f"Failed to download the test case: {index:02}")
+            print(f"Failed to download the test case: {number}")
             sys.exit(1)
 
         contest_id = href.split("/")[-3]
         problem_id = href.split("/")[-1]
-        problem_dir = contest_title + "/" + format(index, "02") + "/test"
+        problem_dir = Path(self.contest_title, number, "test")
         problem_url = f"https://atcoder.jp/contests/{contest_id}/tasks/{problem_id}"
-        command = ["oj", "d", "-d", problem_dir, problem_url]
+        command = ["oj", "d", "-d", str(problem_dir), problem_url]
         subprocess.run(
             command,
             stdout=subprocess.DEVNULL,
             check=True,
         )
-        print(f"Downloaded the test case: {index:02} {problem_id}")
+        print(f"Downloaded the test case: {number} {problem_id}")
 
-        dic_prob = {
-                'contest_id': contest_id,
-                'problem_id': problem_id,
-                'url': problem_url
-                }
-        dic[index] = dic_prob
+        problem: New.Problem = {
+            "contest_id": contest_id,
+            "problem_id": problem_id,
+            "url": problem_url,
+        }
+        self.problems[index] = problem
 
-    driver.close()
+    def run(self) -> None:
+        for index, link in enumerate(self.links, start=1):
+            self.download(index, link)
 
-    with open(f'./{contest_title}/contest-info.json', 'w') as f:
-        json.dump(dic, f, indent=4, separators=(',', ': '))
+        self.create_info()
+
+
+class Submit:
+    def __init__(self, file: str) -> None:
+        info_path = Path(f"../{INFO_FILE}")
+        file_path = Path(file)
+
+        if not info_path.exists():
+            Submit.print_no_file_error(info_path)
+
+        if not file_path.exists():
+            Submit.print_no_file_error(file_path)
+
+        self.info_path = info_path
+        self.file = file
+
+    @staticmethod
+    def print_no_file_error(path: Path) -> None:
+        print(f"Error: '{path}' does not exist.")
+        sys.exit(1)
+
+    def run(self) -> None:
+        with self.info_path.open() as f:
+            info = json.load(f)
+
+        problem_num = int(Path.cwd().name)
+        url = info[str(problem_num)]["url"]
+
+        command = ["oj", "s", url, self.file]
+        subprocess.run(
+            command,
+            check=True,
+        )
+
+
+def new(args: Args) -> None:
+    New(args.url).run()
+
+
+def submit(args: Args) -> None:
+    Submit(args.file).run()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser("AtCoder Problems command line tools")
+    subparsers = parser.add_subparsers(required=True)
+
+    new_message = "create a new contest project directory"
+    new_cmd = subparsers.add_parser("new", help=new_message, aliases=["n"])
+    new_cmd.add_argument("url", help="the URL of the contest")
+    new_cmd.set_defaults(func=new)
+
+    submit_message = "submit the solution"
+    submit_cmd = subparsers.add_parser("submit", help=submit_message, aliases=["s"])
+    submit_cmd.add_argument("file", help="the file to submit")
+    submit_cmd.set_defaults(func=submit)
+
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    args.func(args)
 
 
 if __name__ == "__main__":

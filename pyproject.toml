@@ -40,6 +40,7 @@ target-version = "py311"
 lint.select = ["ALL"]
 lint.ignore = [
     "D",       # pydocstyle
+    "ANN1",    # Missing type annotation for 'self' and 'cls'
     "S603",    # 'subprocess' call: check for execution of untrusted input
     "COM812",  # Trailing comma missing
     "ISC001",  # Implicitly concatenated string literals on one line
