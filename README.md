@@ -4,14 +4,11 @@
 
 ## Installation
 
-```bash
-$ pip install git+https://github.com/take0x/accprob.git
-```
-
-You can also install from a specific branch.
+Before installing accprob, you need to install [pipx](https://pipx.pypa.io/) referring to [this page](https://pipx.pypa.io/stable/installation/).<br>
+Then, you can install accprob by running the following command.
 
 ```bash
-$ pip install git+https://github.com/take0x/accprob.git@branch_name
+$ pipx install git+https://github.com/take0x/accprob.git
 ```
 
 ## Usage
