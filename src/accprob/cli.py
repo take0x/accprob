@@ -31,10 +31,30 @@ class New:
         self.url = url
         self.problems: dict[int, New.Problem] = {}
         self.contest_title = self.driver.find_element(By.XPATH, "//h1").text
-        self.links = self.driver.find_elements(By.XPATH, "//table//td/a")
+        self.links = self.get_links()
 
     def __del__(self) -> None:
         self.driver.close()
+
+    def get_mode(self) -> str:
+        label = self.driver.find_element(By.CLASS_NAME, "badge-secondary").text
+        return label.split()[1]
+
+    def get_links(self) -> list[WebElement]:
+        mode = self.get_mode()
+
+        match mode:
+            case "Normal":
+                value = "//td/a"
+                return self.driver.find_elements(By.XPATH, value)
+            case "Lockout":
+                value = "//h3[@class='card-header']/a"
+                return self.driver.find_elements(By.XPATH, value)
+            case "Training":
+                first_progress = self.driver.find_element(By.XPATH, "//table//td[a]")
+                return first_progress.find_elements(By.XPATH, "a")
+            case _ as unreachable:
+                raise AssertionError(unreachable)
 
     def create_info(self) -> None:
         path = Path(self.contest_title, INFO_FILE)
