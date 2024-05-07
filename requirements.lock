@@ -56,7 +56,7 @@ referencing==0.35.1
 requests==2.31.0
     # via online-judge-api-client
     # via online-judge-tools
-rpds-py==0.18.0
+rpds-py==0.18.1
     # via jsonschema
     # via referencing
 selenium==4.20.0
