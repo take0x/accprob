@@ -74,12 +74,12 @@ class New:
         problem_dir = Path(self.contest_title, number, "test")
         problem_url = f"https://atcoder.jp/contests/{contest_id}/tasks/{problem_id}"
         command = ["oj", "d", "-d", str(problem_dir), problem_url]
-        subprocess.run(
-            command,
-            stdout=subprocess.DEVNULL,
-            check=True,
-        )
-        print(f"Downloaded the test case: {number} {problem_id}")
+
+        try:
+            subprocess.run(command, stdout=subprocess.DEVNULL, check=True)
+            print(f"Downloaded the test case: {number} {problem_id}")
+        except subprocess.CalledProcessError:
+            print(f"Warning: Failed to download the test case: {number} {problem_id}")
 
         problem: New.Problem = {
             "contest_id": contest_id,
@@ -122,10 +122,7 @@ class Submit:
         url = info[str(problem_num)]["url"]
 
         command = ["oj", "s", url, self.file]
-        subprocess.run(
-            command,
-            check=True,
-        )
+        subprocess.run(command, check=True)
 
 
 def new(args: Args) -> None:
