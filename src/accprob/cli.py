@@ -1,162 +1,164 @@
 import argparse
 import json
-import subprocess
-import sys
-import time
 from pathlib import Path
-from typing import TypeAlias, TypedDict
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
+import requests
+from onlinejudge import dispatch
+from onlinejudge.service.atcoder import AtCoderProblem
 
-Args: TypeAlias = argparse.Namespace
-
-INFO_FILE = "contest-info.json"
+from .models import AtCoderProblemAPIResponse, HttpStatus, TypedArgs
 
 
-class New:
-    class Problem(TypedDict):
-        contest_id: str
-        problem_id: str
-        url: str
-
+class AtCoderProblems:
     def __init__(self, url: str) -> None:
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless=new")
-        self.driver = webdriver.Chrome(options=options)
-        self.driver.get(url)
-        time.sleep(3)
+        """
+        Initialize the AtCoderProblems class.
 
+        Args:
+            url (str | ParseResult): The URL of AtCoder Problems.
+            (ex: https://kenkoooo.com/atcoder/#/contest/show/<UUID>)
+        """
         self.url = url
-        self.problems: dict[int, New.Problem] = {}
-        self.contest_title = self.driver.find_element(By.XPATH, "//h1").text
-        self.links = self.get_links()
-
-    def __del__(self) -> None:
-        self.driver.close()
-
-    def get_mode(self) -> str:
-        label = self.driver.find_element(By.CLASS_NAME, "badge-secondary").text
-        return label.split()[1]
-
-    def get_links(self) -> list[WebElement]:
-        mode = self.get_mode()
-
-        match mode:
-            case "Normal":
-                value = "//td/a"
-                return self.driver.find_elements(By.XPATH, value)
-            case "Lockout":
-                value = "//h3[@class='card-header']/a"
-                return self.driver.find_elements(By.XPATH, value)
-            case "Training":
-                first_progress = self.driver.find_element(By.XPATH, "//table//td[a]")
-                return first_progress.find_elements(By.XPATH, "a")
-            case _ as unreachable:
-                raise AssertionError(unreachable)
-
-    def create_info(self) -> None:
-        path = Path(self.contest_title, INFO_FILE)
-
-        with path.open("w") as f:
-            json.dump(self.problems, f, indent=4, separators=(",", ": "))
-
-    def download(self, index: int, link: WebElement) -> None:
-        number = f"{index:02}"
-
-        if (href := link.get_attribute("href")) is None:
-            print(f"Failed to download the test case: {number}")
-            sys.exit(1)
-
-        contest_id = href.split("/")[-3]
-        problem_id = href.split("/")[-1]
-        problem_dir = Path(self.contest_title, number, "test")
-        problem_url = f"https://atcoder.jp/contests/{contest_id}/tasks/{problem_id}"
-        command = ["oj", "d", "-d", str(problem_dir), problem_url]
-        subprocess.run(
-            command,
-            stdout=subprocess.DEVNULL,
-            check=True,
+        self.api_url = self.url.replace(
+            "atcoder/#/contest/show", "atcoder/internal-api/contest/get"
         )
-        print(f"Downloaded the test case: {number} {problem_id}")
-
-        problem: New.Problem = {
-            "contest_id": contest_id,
-            "problem_id": problem_id,
-            "url": problem_url,
-        }
-        self.problems[index] = problem
-
-    def run(self) -> None:
-        for index, link in enumerate(self.links, start=1):
-            self.download(index, link)
-
-        self.create_info()
-
-
-class Submit:
-    def __init__(self, file: str) -> None:
-        info_path = Path(f"../{INFO_FILE}")
-        file_path = Path(file)
-
-        if not info_path.exists():
-            Submit.print_no_file_error(info_path)
-
-        if not file_path.exists():
-            Submit.print_no_file_error(file_path)
-
-        self.info_path = info_path
-        self.file = file
+        self.cache_dir = Path.cwd() / ".accprob"
+        self.cache_dir.mkdir(exist_ok=True, parents=True)
+        self.create_cache()
 
     @staticmethod
-    def print_no_file_error(path: Path) -> None:
-        print(f"Error: '{path}' does not exist.")
-        sys.exit(1)
+    def create_problem_url_from_problem_id(problem_id: str) -> str:
+        return f"https://atcoder.jp/contests/{problem_id[:-2].replace('_', '-')}/tasks/{problem_id}"
 
-    def run(self) -> None:
-        with self.info_path.open() as f:
-            info = json.load(f)
+    @staticmethod
+    def from_url(url: str) -> "AtCoderProblems":
+        """
+        Create AtCoderProblems instance from URL. (いる？)
+        """  # noqa: RUF002
+        return AtCoderProblems(url)
 
-        problem_num = int(Path.cwd().name)
-        url = info[str(problem_num)]["url"]
+    def create_cache(self) -> None:
+        """
+        Cache the test cases of the contest.
+        """
+        with (self.cache_dir / "current.json").open("w") as f:
+            json.dump({"url": self.url, "api_url": self.api_url}, f)
 
-        command = ["oj", "s", url, self.file]
-        subprocess.run(
-            command,
-            check=True,
-        )
+        # if (self.cache_dir / "problems.json").exists() and (self.cache_dir / "problems.json").stat()
+        # with (self.cache_dir / "problems.json").open() as f:
+        #     url = "https://kenkoooo.com/atcoder/resources/problems.json"
+        #     res = requests.get(url, timeout=10)
+        #     if res.status_code == HttpStatus.OK:
+        #         json.dump(res.json(), f)
+        #     else:
+        #         raise Exception("Error: Failed to get the problems data.")
+
+    def download(self, base_dir: str | Path | None) -> None:
+        """
+        Download the test cases of the contest.
+        """
+        if base_dir is None:
+            base_dir = Path.cwd()
+
+        base_dir = Path(base_dir)
+
+        res = requests.get(self.api_url, timeout=10)
+
+        if res.status_code == HttpStatus.OK:
+            data: AtCoderProblemAPIResponse = AtCoderProblemAPIResponse(**res.json())
+        else:
+            raise Exception("Error: Failed to get the contest data.")
+
+        contest_dir = base_dir / data.info.title
+        contest_dir.mkdir(parents=True, exist_ok=True)
+
+        with (contest_dir / "info.json").open("w") as f:
+            json.dump(
+                data.model_dump(),
+                f,
+                ensure_ascii=False,
+            )
+
+        for problem in data.problems:
+            problem_dir = contest_dir / f"{problem.order:02}-{problem.id}"
+            problem_dir.mkdir(parents=True, exist_ok=True)
+            problem_data = dispatch.problem_from_url(
+                self.create_problem_url_from_problem_id(problem.id)
+            )
+            try:
+                if problem_data is None:
+                    raise Exception(
+                        "Error: Failed to get the problem data.", problem.id
+                    )
+                problem_data.download_sample_cases()
+            except Exception as e:
+                print(e)
+                continue
+
+            print(problem.order, problem_data)
+
+    def test(self, file: Path) -> None:
+        """
+        Test the solution.
+        """
+
+    def submit(self, file: Path) -> None:
+        """
+        Submit the solution to the contest.
+
+        Args:
+            file (Path): The file to submit.
+        """
 
 
-def new(args: Args) -> None:
-    New(args.url).run()
-
-
-def submit(args: Args) -> None:
-    Submit(args.file).run()
-
-
-def parse_args() -> argparse.Namespace:
+def parse_args() -> TypedArgs:
     parser = argparse.ArgumentParser("AtCoder Problems command line tools")
     subparsers = parser.add_subparsers(required=True)
+    d = subparsers.add_parser(
+        "download",
+        description="Download the test cases of the contest",
+        help="Require the URL of the contest",
+        aliases=["d"],
+    )
+    d.add_argument("url", metavar="<AtCoder Problem URL>", help="URL of the contest")
+    d.add_argument(
+        "--dir",
+        metavar="<Directory Path>",
+        help=f"The directory to create contest directory. \
+            default: currnet directory ({Path.cwd()})",
+        default=Path.cwd(),
+    )
 
-    new_message = "create a new contest project directory"
-    new_cmd = subparsers.add_parser("new", help=new_message, aliases=["n"])
-    new_cmd.add_argument("url", help="the URL of the contest")
-    new_cmd.set_defaults(func=new)
+    def download_hook(args: TypedArgs) -> None:
+        AtCoderProblems(args.url).download(args.base_dir)
 
-    submit_message = "submit the solution"
-    submit_cmd = subparsers.add_parser("submit", help=submit_message, aliases=["s"])
-    submit_cmd.add_argument("file", help="the file to submit")
-    submit_cmd.set_defaults(func=submit)
+    d.set_defaults(func=download_hook)
 
-    return parser.parse_args()
+    s = subparsers.add_parser(
+        "submit",
+        description="Submit the solution to the contest",
+        help="Require the file to submit",
+        aliases=["s"],
+    )
+    s.add_argument("file", metavar="<File Path>", help="The file to submit")
+
+    def submit_hook(args: TypedArgs) -> None:
+        if args.file is not None:
+            AtCoderProblems(args.url).submit(args.file)
+        else:
+            print("Error: 'File' is required.")
+            parser.print_help()
+
+    s.set_defaults(func=submit_hook)
+
+    return TypedArgs.from_argparse(parser.parse_args())
 
 
 def main() -> None:
-    args = parse_args()
+    args: TypedArgs = parse_args()
     args.func(args)
 
 
 if __name__ == "__main__":
+    # https://kenkoooo.com/atcoder/#/contest/show/e4b1a4f8-2043-4d70-8437-663152a8b700
     main()

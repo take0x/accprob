@@ -7,4 +7,8 @@ wheels/
 *.egg-info
 
 # venv
-.venv
+.venv/
+tmp/
+.accprob/
+.ruff_cache/
+src/accprob/cli2.py
