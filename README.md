@@ -53,6 +53,16 @@ ValueError: Ambiguous problem key
 Error: Ambiguous problem key. Please specify more.
 ```
 ### specify more
+default command is `python main.py`.
+```
+/path/to/<Contest Name>/
+    <Problem ID>/in/sample-1.in, /in/sample-2.in, ...
+    <Problem ID>/out/sample-1.out, /out/sample-2.out, ...
+    <Problem ID>/main.py
+```
+default: always run `python main.py` command at `/path/to/<Contest Name>/<Problem ID>/` directory.
+
+
 ```bash
 $ accprob t typical90_e
 Test /path/to/典型90問 難易度順/75-typical90_e? ([Y]/n): y (or Y or Enter)
