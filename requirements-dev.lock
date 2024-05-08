@@ -28,6 +28,9 @@ colorama==0.4.6
     # via online-judge-tools
 colorlog==6.8.2
     # via online-judge-api-client
+exceptiongroup==1.2.1
+    # via trio
+    # via trio-websocket
 h11==0.14.0
     # via wsproto
 idna==3.7
@@ -74,6 +77,8 @@ soupsieve==2.5
     # via beautifulsoup4
 toml==0.10.2
     # via online-judge-api-client
+tomli==2.0.1
+    # via mypy
 trio==0.25.0
     # via selenium
     # via trio-websocket
@@ -90,5 +95,7 @@ urllib3==2.2.1
     # via urllib3
 wsproto==1.2.0
     # via trio-websocket
+pip==24.0
+    # via accprob
 setuptools==69.5.1
     # via accprob
