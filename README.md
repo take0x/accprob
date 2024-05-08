@@ -66,7 +66,7 @@ typical90_e : sample-5.in -> sample-5.out -> JudgeResult.TLE
 if you want to use pypy3 or other commands, you can use `--bind-commands` option.
 ```bash
 $ accprob t typical90_e --bind-commands "pypy3 main.py"
-Test /Users/n4okins/Repos/Dev/accprob/tmp/典型90問 難易度順/75-typical90_e? ([Y]/n): y
+Test /path/to/典型90問 難易度順/75-typical90_e? ([Y]/n): y
 typical90_e : sample-1.in -> sample-1.out -> JudgeResult.AC
 typical90_e : sample-2.in -> sample-2.out -> JudgeResult.AC
 typical90_e : sample-3.in -> sample-3.out -> JudgeResult.AC
