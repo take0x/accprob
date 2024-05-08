@@ -62,27 +62,140 @@ default command is `python main.py`.
 ```
 default: always run `python main.py` command at `/path/to/<Contest Name>/<Problem ID>/` directory.
 
-
+for example
 ```bash
 $ accprob t typical90_e
 Test /path/to/典型90問 難易度順/75-typical90_e? ([Y]/n): y (or Y or Enter)
-typical90_e : sample-1.in -> sample-1.out -> JudgeResult.AC
-typical90_e : sample-2.in -> sample-2.out -> JudgeResult.AC
-typical90_e : sample-3.in -> sample-3.out -> JudgeResult.AC
-typical90_e : sample-4.in -> sample-4.out -> JudgeResult.AC
-typical90_e : sample-5.in -> sample-5.out -> JudgeResult.TLE
+typical90_e : sample-1.in -> (0.04 [s]) -> sample-1.out | Result: JudgeResult.AC
+typical90_e : sample-2.in -> (0.02 [s]) -> sample-2.out | Result: JudgeResult.AC
+typical90_e : sample-3.in -> (0.03 [s]) -> sample-3.out | Result: JudgeResult.RE
+typical90_e : sample-4.in -> (0.03 [s]) -> sample-4.out | Result: JudgeResult.RE
+typical90_e : sample-5.in -> (0.02 [s]) -> sample-5.out | Result: JudgeResult.RE
 ```
+or
+```bash
+$ accprob t 75
+Test /path/to/典型90問 難易度順/75-typical90_e? ([Y]/n): y (or Y or Enter)
+typical90_e : sample-1.in -> (0.04 [s]) -> sample-1.out | Result: JudgeResult.AC
+typical90_e : sample-2.in -> (0.02 [s]) -> sample-2.out | Result: JudgeResult.AC
+typical90_e : sample-3.in -> (0.03 [s]) -> sample-3.out | Result: JudgeResult.RE
+typical90_e : sample-4.in -> (0.03 [s]) -> sample-4.out | Result: JudgeResult.RE
+typical90_e : sample-5.in -> (0.02 [s]) -> sample-5.out | Result: JudgeResult.RE
+```
+
+### show detail
+```bash
+$ accprob t 75 --show-detail
+Test /path/to/典型90問 難易度順/75-typical90_e? ([Y]/n): y
+================================================================ 
+
+Result: JudgeResult.AC
+Time: 0.03508258300007583[s]
+Return code: 0
+
+In:
+3 7 3
+1 4 9
+
+Your Out:
+3
+
+Expected:
+3
+
+
+================================================================ 
+
+Result: JudgeResult.AC
+Time: 0.02223887500008459[s]
+Return code: 0
+
+In:
+5 2 3
+1 4 9
+
+Your Out:
+81
+
+Expected:
+81
+
+
+================================================================ 
+
+Result: JudgeResult.RE
+Time: 0.020535999999992782[s]
+Return code: 127
+
+In:
+10000 27 7
+1 3 4 6 7 8 9
+
+Your Out:
+
+Expected:
+989112238
+
+
+================================================================ 
+
+Result: JudgeResult.RE
+Time: 0.017910125000071275[s]
+Return code: 127
+
+In:
+1000000000000000000 29 6
+1 2 4 5 7 9
+
+Your Out:
+
+Expected:
+853993813
+
+
+================================================================ 
+
+Result: JudgeResult.RE
+Time: 0.01573075000010249[s]
+Return code: 127
+
+In:
+1000000000000000000 957 7
+1 2 3 5 6 7 9
+
+Your Out:
+
+Expected:
+205384995
+```
+
+OK. The result is RE. You can see the detail of the test.
+
 ### bind commands
+then, you fixed the bug and want to test it again.
+```bash
+$ accprob t typical90_e
+Test /path/to/典型90問 難易度順/75-typical90_e? ([Y]/n): y
+typical90_e : sample-1.in -> (0.04 [s]) -> sample-1.out | Result: JudgeResult.AC
+typical90_e : sample-2.in -> (0.02 [s]) -> sample-2.out | Result: JudgeResult.AC
+typical90_e : sample-3.in -> (0.03 [s]) -> sample-3.out | Result: JudgeResult.AC
+typical90_e : sample-4.in -> (0.03 [s]) -> sample-4.out | Result: JudgeResult.AC
+typical90_e : sample-5.in -> (9.46 [s]) -> sample-5.out | Result: JudgeResult.TLE
+```
+the result is TLE. python is so slow.
 if you want to use pypy3 or other commands, you can use `--bind-commands` option.
+
 ```bash
 $ accprob t typical90_e --bind-commands "pypy3 main.py"
 Test /path/to/典型90問 難易度順/75-typical90_e? ([Y]/n): y
-typical90_e : sample-1.in -> sample-1.out -> JudgeResult.AC
-typical90_e : sample-2.in -> sample-2.out -> JudgeResult.AC
-typical90_e : sample-3.in -> sample-3.out -> JudgeResult.AC
-typical90_e : sample-4.in -> sample-4.out -> JudgeResult.AC
-typical90_e : sample-5.in -> sample-5.out -> JudgeResult.AC
+typical90_e : sample-1.in -> (0.04 [s]) -> sample-1.out | Result: JudgeResult.AC
+typical90_e : sample-2.in -> (0.02 [s]) -> sample-2.out | Result: JudgeResult.AC
+typical90_e : sample-3.in -> (0.02 [s]) -> sample-3.out | Result: JudgeResult.AC
+typical90_e : sample-4.in -> (0.02 [s]) -> sample-4.out | Result: JudgeResult.AC
+typical90_e : sample-5.in -> (0.22 [s]) -> sample-5.out | Result: JudgeResult.AC
 ```
+
+OK. It's fast.
 
 ## Contributing
 If you are interested in contributing to this project, please read [CONTRIBUTING.md](CONTRIBUTING.md).

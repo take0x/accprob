@@ -11,4 +11,3 @@ wheels/
 tmp/
 .accprob/
 .ruff_cache/
-src/accprob/cli2.py

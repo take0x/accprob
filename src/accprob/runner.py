@@ -54,8 +54,6 @@ class JudgeRunner:
         input_testcase_file: Path,
         output_testcase_file: Path,
         timelimit: int = 2,
-        *,
-        return_detail: bool = False,
     ) -> tuple[JudgeResult, dict]:
         """
         Run the program with the input test case file and check the output.
@@ -83,6 +81,4 @@ class JudgeRunner:
             code = JudgeResult.WA
         else:
             code = JudgeResult.AC
-        if return_detail:
-            return code, {"time": t, "return_code": return_code, "answer": answer}
-        return code, {}
+        return code, {"time": t, "return_code": return_code, "answer": answer}

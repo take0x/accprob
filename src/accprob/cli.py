@@ -251,26 +251,29 @@ class AtCoderProblems:
                 result, meta = runner(
                     testcase_in,
                     testcase_out,
-                    return_detail=True,
                 )
                 meta["input"] = testcase_in.read_text()
                 meta["expected"] = testcase_out.read_text()
                 print("\n" + "=" * 64, "\n")
-                print(f"time: {meta['time']}[s]")
-                print(f"return code: {meta['return_code']}\n")
+                print("Result:", result)
+                print(f"Time: {meta['time']}[s]")
+                print(f"Return code: {meta['return_code']}\n")
                 print(f"In:\n{meta['input']}")
                 print(f"Your Out:\n{meta['answer']}")
                 print(f"Expected:\n{meta['expected']}")
 
             else:
+                result, meta = runner(testcase_in, testcase_out)
                 print(
                     target_problem.id,
                     ":",
                     testcase_in.name,
                     "->",
-                    testcase_out.name,
+                    f"({meta['time']:.2f} [s])",
                     "->",
-                    runner(testcase_in, testcase_out)[0],
+                    testcase_out.name,
+                    "| Result:",
+                    result,
                 )
 
     def submit(self, file: Path) -> None:
